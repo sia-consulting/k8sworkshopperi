@@ -119,3 +119,95 @@ The following Docker images are used in this sample
 * [.NET Core Production Docker sample](../dotnetapp-prod/README.md)
 * [.NET Core Docker samples](../README.md)
 * [.NET Framework Docker samples](https://github.com/Microsoft/dotnet-framework-docker-samples)
+
+
+
+
+## Kubernetes
+### Add Kubernetes Secret for image pull from acr
+```sh
+kubectl create secret docker-registry SECRET_NAME --docker-server=REGISTRY_NAME.azurecr.io --docker-username=USERNAME --docker-password=PASSWORD --docker-email=ANY_VALID_EMAIL
+```
+
+### Add Deployment
+```yaml
+apiVersion: apps/v1
+kind: Deployment  
+metadata:  
+  name: my-api  
+spec:  
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: my-api
+  template:  
+    metadata:  
+      labels:  
+        app: my-api  
+    spec:  
+      containers:  
+      - name: my-api  
+        image: pericr.azurecr.io/peri/sample:latest
+        ports:  
+        - containerPort: 80  
+      imagePullSecrets:  
+      - name: [SECRET NAME]  
+```
+
+### Deploy deployment to cluster
+```sh
+kubectl apply -f path-to-deployment-yaml.yaml
+```
+
+### Check pod is running
+```sh
+kubectl get pods
+```
+
+### Add Service
+```yaml
+apiVersion: v1  
+kind: Service  
+metadata:  
+  name: my-api  
+spec:  
+  type: LoadBalancer  
+  ports:  
+  - port: 80  
+  selector:  
+    app: my-api
+```
+
+### Deploy service to cluster
+```sh
+kubectl apply -f path-to-service-yaml.yaml
+```
+
+### Get Service external-ip
+```sh
+kubectl get services
+```
+
+### Autoscale
+```sh
+kubectl autoscale deployment my-api --min=3 --max=3 --cpu-percent=80
+```
+
+## Helm Chart
+
+### Create new HelmChart
+Create new folder for chart 
+```sh
+mkdir helm-chart
+cd helm-chart
+```
+
+Init helm chart
+```sh
+helm create my-chart
+```
+
+Install helm chart
+```sh
+helm upgrade --install --set service.type=LoadBalancer --set image.repository=pericr.azurecr.io/peri/sample --set image.tag=latest --set imagePullSecret.registryURL=pericr.azurecr.io --set imagePullSecret.secretName=acrsecret --set imagePullSecret.username=pericr --set imagePullSecret.password=QuPCMM=3wXP8FZ6BiOZ71dlLyV6rmVk5 my-api .\my-chart\
+```

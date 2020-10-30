@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment  
+metadata:  
+  name: my-api  
+spec:  
+  replicas: 1  
+  selector:
+    matchLabels: 
+      app: my-api
+  template:  
+    metadata:  
+      labels:  
+        app: my-api  
+    spec:  
+      containers:  
+      - name: my-api  
+        image: pericr.azurecr.io/peri/sample:latest2
+        ports:  
+        - containerPort: 80  
+      imagePullSecrets:  
+      - name: acrsecret

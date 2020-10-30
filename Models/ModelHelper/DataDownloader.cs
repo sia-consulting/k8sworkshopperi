@@ -1,8 +1,8 @@
 ﻿using AspNetCoreWebApp.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace AspNetCoreWebApp.Controllers
@@ -36,16 +36,22 @@ namespace AspNetCoreWebApp.Controllers
                     if (match.Success)
                     {
                         string theBody = match.Groups["theBody"].Value;
-                        dynamic parsedData =  JsonConvert.DeserializeObject(theBody);
+                        LoadedData parsedData =  JsonSerializer.Deserialize<LoadedData>(theBody);
                         dynamic d1 = parsedData.dataset.data;
-                        DateTime date = DateTime.Parse(d1[0][0].ToString());
-                        double closeprice = Convert.ToDouble(d1[0][4].ToString());
-                        double volume = Convert.ToDouble(d1[0][5].ToString());
-                        // We have our data. Add it to the list
-                        objList.Add(new StockViewModel { dateTime = date.ToShortDateString(),
-                            ticker = item,
-                            close = closeprice.ToString(),
-                            volume = volume.ToString() });
+                        if (d1 is object[] d2 && d2.Length > 0)
+                        {
+                            DateTime date = DateTime.Parse(d1[0][0].ToString());
+                            double closeprice = Convert.ToDouble(d1[0][4].ToString());
+                            double volume = Convert.ToDouble(d1[0][5].ToString());
+                            // We have our data. Add it to the list
+                            objList.Add(new StockViewModel
+                            {
+                                dateTime = date.ToShortDateString(),
+                                ticker = item,
+                                close = closeprice.ToString(),
+                                volume = volume.ToString()
+                            });
+                        }
                     }
                 }
             }
